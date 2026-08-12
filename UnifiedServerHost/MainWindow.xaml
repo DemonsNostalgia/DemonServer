@@ -1,0 +1,287 @@
+<Window x:Class="Eudemons.UnifiedServer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Eudemons Unified Server"
+        Width="1240"
+        Height="780"
+        MinWidth="980"
+        MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Closing="Window_Closing">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="34" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="#15181B"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock FontSize="19"
+                               FontWeight="SemiBold"
+                               Text="Eudemons Unified Server" />
+                    <TextBlock Margin="0,3,0,0"
+                               FontSize="12"
+                               Foreground="{StaticResource SecondaryText}"
+                               Text="{Binding RuntimePathText}" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button Margin="0,0,8,0"
+                            Background="#1D6B48"
+                            BorderBrush="#2A8A61"
+                            Click="StartAll_Click"
+                            Content="Start All" />
+                    <Button Background="#6C3030"
+                            BorderBrush="#914444"
+                            Click="StopAll_Click"
+                            Content="Stop All" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="278" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0"
+                    Background="{StaticResource PanelBackground}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="45" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Margin="18,0"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource SecondaryText}"
+                               Text="SERVER PROCESSES" />
+
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Servers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="16,14"
+                                        BorderBrush="{StaticResource BorderBrush}"
+                                        BorderThickness="0,1,0,0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Ellipse Width="8"
+                                                 Height="8"
+                                                 HorizontalAlignment="Left"
+                                                 VerticalAlignment="Center"
+                                                 Fill="{Binding AccentBrush}" />
+                                        <TextBlock Grid.Column="1"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Text="{Binding DisplayName}" />
+                                        <TextBlock Grid.Row="1"
+                                                   Grid.Column="1"
+                                                   Margin="0,4,0,10"
+                                                   FontSize="12"
+                                                   Foreground="{StaticResource SecondaryText}"
+                                                   Text="{Binding Status}" />
+                                        <StackPanel Grid.Row="2"
+                                                    Grid.Column="1"
+                                                    Orientation="Horizontal">
+                                            <Button Width="72"
+                                                    Margin="0,0,7,0"
+                                                    Padding="8,5"
+                                                    IsEnabled="{Binding CanStart}"
+                                                    Tag="{Binding}"
+                                                    Click="StartServer_Click"
+                                                    Content="Start" />
+                                            <Button Width="72"
+                                                    Padding="8,5"
+                                                    IsEnabled="{Binding CanStop}"
+                                                    Tag="{Binding}"
+                                                    Click="StopServer_Click"
+                                                    Content="Stop" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="52" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="50" />
+                </Grid.RowDefinitions>
+
+                <Border Background="#141719"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,0,0,1">
+                    <Grid Margin="14,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="210" />
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="SearchBox"
+                                 Margin="0,9,10,9"
+                                 VerticalContentAlignment="Center"
+                                 TextChanged="LogFilter_Changed"
+                                 ToolTip="Filter log messages" />
+                        <ComboBox x:Name="ServerFilter"
+                                  Grid.Column="1"
+                                  Margin="0,9,10,9"
+                                  VerticalContentAlignment="Center"
+                                  SelectionChanged="LogFilter_Changed" />
+                        <CheckBox x:Name="AutoScrollCheckBox"
+                                  Grid.Column="3"
+                                  Margin="8,0,14,0"
+                                  IsChecked="True"
+                                  Content="Auto-scroll" />
+                        <Button Grid.Column="4"
+                                Margin="0,9,0,9"
+                                Padding="10,4"
+                                Click="ClearLogs_Click"
+                                Content="Clear" />
+                    </Grid>
+                </Border>
+
+                <ListBox x:Name="LogList"
+                         Grid.Row="1"
+                         ItemsSource="{Binding LogView}"
+                         Background="{StaticResource WindowBackground}"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Focusable" Value="False" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid MinHeight="30"
+                                  Background="#101214">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="105" />
+                                    <ColumnDefinition Width="126" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Background="{Binding ServerBrush}" />
+                                <TextBlock Grid.Column="1"
+                                           Margin="12,6,8,6"
+                                           FontFamily="Cascadia Mono,Consolas"
+                                           FontSize="12"
+                                           Foreground="#77818A"
+                                           Text="{Binding TimeText}" />
+                                <TextBlock Grid.Column="2"
+                                           Margin="4,6,8,6"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{Binding ServerBrush}"
+                                           Text="{Binding ServerName}" />
+                                <TextBlock Grid.Column="3"
+                                           Margin="4,6,16,6"
+                                           FontFamily="Cascadia Mono,Consolas"
+                                           FontSize="12"
+                                           Foreground="{Binding MessageBrush}"
+                                           Text="{Binding Message}"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Border Grid.Row="2"
+                        Background="#15181B"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid Margin="14,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="160" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="CommandTarget"
+                                  Margin="0,0,8,0"
+                                  DisplayMemberPath="DisplayName"
+                                  ItemsSource="{Binding Servers}" />
+                        <TextBox x:Name="CommandBox"
+                                 Grid.Column="1"
+                                 Margin="0,0,8,0"
+                                 VerticalContentAlignment="Center"
+                                 KeyDown="CommandBox_KeyDown"
+                                 ToolTip="Server command" />
+                        <Button Grid.Column="2"
+                                Width="72"
+                                Click="SendCommand_Click"
+                                Content="Send" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <Border Grid.Row="2"
+                Background="#0C0E10"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,1,0,0">
+            <Grid Margin="14,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Ellipse Width="7"
+                         Height="7"
+                         Margin="0,0,8,0"
+                         VerticalAlignment="Center"
+                         Fill="{Binding OverallStatusBrush}" />
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{StaticResource SecondaryText}"
+                           Text="{Binding OverallStatusText}" />
+                <TextBlock Grid.Column="2"
+                           VerticalAlignment="Center"
+                           FontSize="12"
+                           Foreground="{StaticResource SecondaryText}"
+                           Text="{Binding LogCountText}" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,238 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{51C13C2F-9F85-4D32-A0A9-2AEE713BAD7C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MapServer</RootNamespace>
+    <AssemblyName>MapServer</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>MapServer.Program</StartupObject>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\RunTime\MapServer\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GameBase\GameBase.csproj">
+      <Project>{797E1D9F-244B-43C8-AE71-7DAD073C93B5}</Project>
+      <Name>GameBase</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AI\BaseAI.cs" />
+    <Compile Include="AI\MeleeAI.cs" />
+    <Compile Include="AnShaXieLongObject.cs" />
+    <Compile Include="BaseObject.cs" />
+    <Compile Include="BattleSystem.cs" />
+    <Compile Include="ConfigManager.cs" />
+    <Compile Include="DBServer.cs" />
+    <Compile Include="DiYuXieFu.cs" />
+    <Compile Include="DropItemObject.cs" />
+    <Compile Include="EffectObject.cs" />
+    <Compile Include="EquipOperation.cs" />
+    <Compile Include="EudemonHatchManager.cs" />
+    <Compile Include="BatchHatchManager.cs" />
+    <Compile Include="EudemonObject.cs" />
+    <Compile Include="FightKnightObject.cs" />
+    <Compile Include="FamilyManager.cs" />
+    <Compile Include="FindPoint.cs" />
+    <Compile Include="FriendRequestRegistry.cs" />
+    <Compile Include="FubenGameMap.cs" />
+    <Compile Include="GameMap.cs" />
+    <Compile Include="GameServer.cs" />
+    <Compile Include="GameStruct\Action.cs" />
+    <Compile Include="GameStruct\ActionID.cs" />
+    <Compile Include="GameStruct\ActionInfo.cs" />
+    <Compile Include="GameStruct\AiInfo.cs" />
+    <Compile Include="GameStruct\BaseAttributeInfo.cs" />
+    <Compile Include="GameStruct\CRect.cs" />
+    <Compile Include="GameStruct\DIR.cs" />
+    <Compile Include="GameStruct\DropItemClass.cs" />
+    <Compile Include="GameStruct\DropItemInfo.cs" />
+    <Compile Include="GameStruct\EquipStrongInfo.cs" />
+    <Compile Include="GameStruct\EudemonAttribute.cs" />
+    <Compile Include="GameStruct\EudemonInfo.cs" />
+    <Compile Include="GameStruct\EudemonSoulInfo.cs" />
+    <Compile Include="GameStruct\EUDEMONSTATE.cs" />
+    <Compile Include="GameStruct\EudemonWuXing.cs" />
+    <Compile Include="GameStruct\GemInfo.cs" />
+    <Compile Include="GameStruct\GeneratorInfo.cs" />
+    <Compile Include="GameStruct\GUANGJUELEVEL.cs" />
+    <Compile Include="GameStruct\HairInfo.cs" />
+    <Compile Include="GameStruct\WardrobeHairInfo.cs" />
+    <Compile Include="GameStruct\WardrobeAvatarInfo.cs" />
+    <Compile Include="GameStruct\HotkeyInfo.cs" />
+    <Compile Include="GameStruct\IRandom.cs" />
+    <Compile Include="GameStruct\ItemAdditionInfo.cs" />
+    <Compile Include="GameStruct\ItemTypeInfo.cs" />
+    <Compile Include="GameStruct\LevelExp.cs" />
+    <Compile Include="GameStruct\LookFaceInfo.cs" />
+    <Compile Include="GameStruct\MagicTypeInfo.cs" />
+    <Compile Include="GameStruct\MapGateInfo.cs" />
+    <Compile Include="GameStruct\MapGridInfo.cs" />
+    <Compile Include="GameStruct\MapInfo.cs" />
+    <Compile Include="GameStruct\MapRegionInfo.cs" />
+    <Compile Include="GameStruct\MONEYTYPE.cs" />
+    <Compile Include="GameStruct\MonsterInfo.cs" />
+    <Compile Include="GameStruct\MonsterNameType.cs" />
+    <Compile Include="GameStruct\MonterAttribute.cs" />
+    <Compile Include="GameStruct\NPCInfo.cs" />
+    <Compile Include="GameStruct\NpcShopInfo.cs" />
+    <Compile Include="GameStruct\PlayerAttribute.cs" />
+    <Compile Include="GameStruct\Point.cs" />
+    <Compile Include="GameStruct\RobotInfo.cs" />
+    <Compile Include="GameStruct\RoleItemInfo.cs" />
+    <Compile Include="GameStruct\RoleMagicInfo.cs" />
+    <Compile Include="GameStruct\RoleStatus.cs" />
+    <Compile Include="GameStruct\Size.cs" />
+    <Compile Include="GameStruct\TrackInfo.cs" />
+    <Compile Include="GameStruct\UserAttribute.cs" />
+    <Compile Include="GMCommand.cs" />
+    <Compile Include="GuanJueManager.cs" />
+    <Compile Include="GuardKnightObject.cs" />
+    <Compile Include="IDManager.cs" />
+    <Compile Include="Legion.cs" />
+    <Compile Include="LegionManager.cs" />
+    <Compile Include="MapManager.cs" />
+    <Compile Include="MapPath.cs" />
+    <Compile Include="MingGuoShengNv.cs" />
+    <Compile Include="MonsterObject.cs" />
+    <Compile Include="NetMsg\BaseMsg.cs" />
+    <Compile Include="NetMsg\MsgAction.cs" />
+    <Compile Include="NetMsg\MsgAttackInfo.cs" />
+    <Compile Include="NetMsg\MsgChangeMapInfo.cs" />
+    <Compile Include="NetMsg\MsgChangePkMode.cs" />
+    <Compile Include="NetMsg\MsgClearItem.cs" />
+    <Compile Include="NetMsg\MsgClearObjectInfo.cs" />
+    <Compile Include="NetMsg\MsgCombo.cs" />
+    <Compile Include="NetMsg\MsgCreateRoleInfo.cs" />
+    <Compile Include="NetMsg\MsgDropItem.cs" />
+    <Compile Include="NetMsg\MsgEquipOperation.cs" />
+    <Compile Include="NetMsg\MsgEquipOperationRet.cs" />
+    <Compile Include="NetMsg\MsgEudemonBattleInfo.cs" />
+    <Compile Include="NetMsg\MsgEudemonInfo.cs" />
+    <Compile Include="NetMsg\MsgEudemonTag.cs" />
+    <Compile Include="NetMsg\MsgFriendInfo.cs" />
+    <Compile Include="NetMsg\MsgFriendDetail.cs" />
+    <Compile Include="NetMsg\MsgGroupMagicAttackInfo.cs" />
+    <Compile Include="NetMsg\MsgGuanJueInfo.cs" />
+    <Compile Include="NetMsg\MsgGuanJueItem.cs" />
+    <Compile Include="NetMsg\MsgHotKey.cs" />
+    <Compile Include="NetMsg\MsgItemInfo.cs" />
+    <Compile Include="NetMsg\MsgLeftNotice.cs" />
+    <Compile Include="NetMsg\MsgLegionName.cs" />
+    <Compile Include="NetMsg\MsgLock.cs" />
+    <Compile Include="NetMsg\MsgLogin.cs" />
+    <Compile Include="NetMsg\MsgMagicAttackInfo.cs" />
+    <Compile Include="NetMsg\MsgMagicAttackInfoEx.cs" />
+    <Compile Include="NetMsg\MsgMagicAttackInjured.cs" />
+    <Compile Include="NetMsg\MsgMagicInfo.cs" />
+    <Compile Include="NetMsg\MsgMapInfo.cs" />
+    <Compile Include="NetMsg\MsgMonsterAttackInfo.cs" />
+    <Compile Include="NetMsg\MsgMonsterDieInfo.cs" />
+    <Compile Include="NetMsg\MsgMonsterInfo.cs" />
+    <Compile Include="NetMsg\MsgMonsterInjuredInfo.cs" />
+    <Compile Include="NetMsg\MsgMonsterMagicInjuredInfo.cs" />
+    <Compile Include="NetMsg\MsgMoveInfo.cs" />
+    <Compile Include="NetMsg\MsgNotice.cs" />
+    <Compile Include="NetMsg\MsgNpcInfo.cs" />
+    <Compile Include="NetMsg\MsgNpcReply.cs" />
+    <Compile Include="NetMsg\MsgOpenDialog.cs" />
+    <Compile Include="NetMsg\MsgOpenNpc.cs" />
+    <Compile Include="NetMsg\MsgOperateEquip.cs" />
+    <Compile Include="NetMsg\MsgOperateItem.cs" />
+    <Compile Include="NetMsg\MsgPtichItemInfo.cs" />
+    <Compile Include="NetMsg\MsgQueryCreateRoleName.cs" />
+    <Compile Include="NetMsg\MsgReCall1.cs" />
+    <Compile Include="NetMsg\MsgReCall2.cs" />
+    <Compile Include="NetMsg\MsgRoleInfo.cs" />
+    <Compile Include="NetMsg\MsgScroolRandom.cs" />
+    <Compile Include="NetMsg\MsgSelfLegionInfo.cs" />
+    <Compile Include="NetMsg\MsgSelfRoleInfo.cs" />
+    <Compile Include="NetMsg\MsgSPInfo.cs" />
+    <Compile Include="NetMsg\MsgStrongInfo.cs" />
+    <Compile Include="NetMsg\MsgStrongPack.cs" />
+    <Compile Include="NetMsg\MsgTalkInfo.cs" />
+    <Compile Include="NetMsg\MsgTradInfo.cs" />
+    <Compile Include="NetMsg\MsgUpdateSP.cs" />
+    <Compile Include="NetMsg\MsgUserAttribute.cs" />
+    <Compile Include="NpcObject.cs" />
+    <Compile Include="PayManager.cs" />
+    <Compile Include="PayRecInfo.cs" />
+    <Compile Include="PigeonInfo.cs" />
+    <Compile Include="PlayerEudemon.cs" />
+    <Compile Include="PlayerFamily.cs" />
+    <Compile Include="PlayerFight.cs" />
+    <Compile Include="PlayerFriend.cs" />
+    <Compile Include="PlayerItem.cs" />
+    <Compile Include="PlayerLegion.cs" />
+    <Compile Include="PlayerMagic.cs" />
+    <Compile Include="PlayerObject.cs" />
+    <Compile Include="PlayerPK.cs" />
+    <Compile Include="PlayerTimer.cs" />
+    <Compile Include="PlayerTrad.cs" />
+    <Compile Include="PlayerWardrobe.cs" />
+    <Compile Include="PlayTimeOut.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PtichInfo.cs" />
+    <Compile Include="PtichManager.cs" />
+    <Compile Include="PtichObject.cs" />
+    <Compile Include="PtichSellItemInfo.cs" />
+    <Compile Include="RecoveryID.cs" />
+    <Compile Include="RefreshObject.cs" />
+    <Compile Include="RobotLegionManager.cs" />
+    <Compile Include="RobotObject.cs" />
+    <Compile Include="ScripteManager.cs" />
+    <Compile Include="ScriptTimerInfo.cs" />
+    <Compile Include="ScriptTimerManager.cs" />
+    <Compile Include="SessionManager.cs" />
+    <Compile Include="ShenYuanELing.cs" />
+    <Compile Include="ShiHunWuLing.cs" />
+    <Compile Include="SocketCallBack.cs" />
+    <Compile Include="SocketInfo.cs" />
+    <Compile Include="StringDefine.cs" />
+    <Compile Include="Team.cs" />
+    <Compile Include="TeamManager.cs" />
+    <Compile Include="TempPlayObject.cs" />
+    <Compile Include="TLink.cs" />
+    <Compile Include="TTree.cs" />
+    <Compile Include="UserEngine.cs" />
+    <Compile Include="VerPacket.cs" />
+    <Compile Include="WangNianWuLing.cs" />
+    <Compile Include="WorldPigeon.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="app.manifest" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

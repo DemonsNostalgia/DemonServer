@@ -1,0 +1,69 @@
+﻿using System;
+
+namespace GameStruct
+{
+	// Token: 0x02000030 RID: 48
+	public enum UserAttribute
+	{
+		// Token: 0x0400022D RID: 557
+		LIFE,
+		// Token: 0x0400022E RID: 558
+		LIFE_MAX,
+		// Token: 0x0400022F RID: 559
+		MANA,
+		// Token: 0x04000230 RID: 560
+		MANA_MAX,
+		// Token: 0x04000231 RID: 561
+		GOLD,
+		// Token: 0x04000232 RID: 562
+		EXP,
+		// Token: 0x04000233 RID: 563
+		PK,
+		// Token: 0x04000234 RID: 564
+		PORFESSION,
+		// Token: 0x04000235 RID: 565
+		SIZEADD,
+		// Token: 0x04000236 RID: 566
+		SP,
+		// Token: 0x04000237 RID: 567
+		MONEYSAVED,
+		// Token: 0x04000238 RID: 568
+		ADDPOINT,
+		// Token: 0x04000239 RID: 569
+		LOOKFACE,
+		// Token: 0x0400023A RID: 570
+		LEVEL,
+		// Token: 0x0400023B RID: 571
+		MAGIC_ATTACK,
+		// Token: 0x0400023C RID: 572
+		MAGIC_ATTACK_MAX,
+		// Token: 0x0400023D RID: 573
+		ATTACK,
+		// Token: 0x0400023E RID: 574
+		SPEED,
+		// Token: 0x0400023F RID: 575
+		STATUS = 26,
+		// Token: 0x04000240 RID: 576
+		HAIR,
+		// Token: 0x04000241 RID: 577
+		XP,
+		// Token: 0x04000242 RID: 578
+		MAXEUDEMON = 39,
+		// Token: 0x04000243 RID: 579
+		GAMEGOLD = 46,
+		// Token: 0x04000244 RID: 580
+		GUANJUE = 51,
+		// Token: 0x04000245 RID: 581
+		STATUS1 = 36,
+		// Token: 0x04000246 RID: 582
+		STATUSEX = 71,
+		// Token: 0x04000247 RID: 583
+		STATUSEX1,
+		// Token: 0x04000248 RID: 584
+		MOLONGSHOUHU_STATUS = 99,
+		// Token: 0x04000249 RID: 585
+		YUANSUZHANGKONG = 101,
+		// Token: 0x0400024A RID: 586
+		LIUXINGYUNHUO = 107
+	}
+}

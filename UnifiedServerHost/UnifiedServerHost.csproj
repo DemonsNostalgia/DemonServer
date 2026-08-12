@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Eudemons.UnifiedServer</AssemblyName>
+    <RootNamespace>Eudemons.UnifiedServer</RootNamespace>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <PackageOutputPath>..\..\RunTime\UnifiedServerHost</PackageOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="9.7.0" />
+  </ItemGroup>
+</Project>

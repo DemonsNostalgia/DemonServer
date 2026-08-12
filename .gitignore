@@ -1,0 +1,13 @@
+# Ignore bin and obj folders in the root directory and all subdirectories
+bin/
+obj/
+**/bin/
+**/obj/
+.vs/
+RunTime/
+RunTime/GlobalConfig.ini
+
+# Case-insensitive variants
+[Bb]in/
+[Oo]bj/
+/RunTime/GlobalConfig.ini

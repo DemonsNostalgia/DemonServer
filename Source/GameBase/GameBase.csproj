@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{797E1D9F-244B-43C8-AE71-7DAD073C93B5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>GameBase</RootNamespace>
+    <AssemblyName>GameBase</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\RunTime\MapServer\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Config\BROADCASTMSGTYPE.cs" />
+    <Compile Include="Config\CsvFile.cs" />
+    <Compile Include="Config\Define.cs" />
+    <Compile Include="Config\FieldInfo.cs" />
+    <Compile Include="Config\IniSection.cs" />
+    <Compile Include="Config\JOB.cs" />
+    <Compile Include="Config\Log.cs" />
+    <Compile Include="Config\MemIniFile.cs" />
+    <Compile Include="Config\OBJECTTYPE.cs" />
+    <Compile Include="Config\Sex.cs" />
+    <Compile Include="Config\TextDefine.cs" />
+    <Compile Include="Core\BaseFunc.cs" />
+    <Compile Include="Core\Coding.cs" />
+    <Compile Include="Core\GlobalException.cs" />
+    <Compile Include="Core\TimeOut.cs" />
+    <Compile Include="Network\ClientStateObject.cs" />
+    <Compile Include="Network\GamePack.cs" />
+    <Compile Include="Network\GamePacketKeyEx.cs" />
+    <Compile Include="Network\GameSession.cs" />
+    <Compile Include="Network\GenerateKey.cs" />
+    <Compile Include="Network\IDManager.cs" />
+    <Compile Include="Network\InternalPacket.cs" />
+    <Compile Include="Network\LoginPackets.cs" />
+    <Compile Include="Network\LoginRequestValidator.cs" />
+    <Compile Include="Network\MapPackets.cs" />
+    <Compile Include="Network\Internal\AddRoleData_Item.cs" />
+    <Compile Include="Network\Internal\AddRoleData_Item_Ret.cs" />
+    <Compile Include="Network\Internal\CreateLegion_Ret.cs" />
+    <Compile Include="Network\Internal\FamilyInfo.cs" />
+    <Compile Include="Network\Internal\CreateRole.cs" />
+    <Compile Include="Network\Internal\CreateRole_Ret.cs" />
+    <Compile Include="Network\Internal\Define.cs" />
+    <Compile Include="Network\Internal\DeleteItemByID.cs" />
+    <Compile Include="Network\Internal\GUANJUEINFO.2.cs" />
+    <Compile Include="Network\Internal\GuanJueInfo.cs" />
+    <Compile Include="Network\Internal\KickGamePlay.cs" />
+    <Compile Include="Network\Internal\LEGIONINFO.2.cs" />
+    <Compile Include="Network\Internal\LegionInfo.cs" />
+    <Compile Include="Network\Internal\LegionMember.cs" />
+    <Compile Include="Network\Internal\LegionOption.cs" />
+    <Compile Include="Network\Internal\MagicInfo.cs" />
+    <Compile Include="Network\Internal\OpenLoginSession.cs" />
+    <Compile Include="Network\Internal\OpenMapSession.cs" />
+    <Compile Include="Network\Internal\PackPayRecInfo.cs" />
+    <Compile Include="Network\Internal\PackUpdatePayRecInfo.cs" />
+    <Compile Include="Network\Internal\QueryRole.cs" />
+    <Compile Include="Network\Internal\QueryRoleName.cs" />
+    <Compile Include="Network\Internal\QueryRoleName_Ret.cs" />
+    <Compile Include="Network\Internal\QueryRole_Ret.cs" />
+    <Compile Include="Network\Internal\RoleData_Eudemon.cs" />
+    <Compile Include="Network\Internal\ROLEDATA_FRIEND.2.cs" />
+    <Compile Include="Network\Internal\RoleData_Friend.cs" />
+    <Compile Include="Network\Internal\RoleData_Item.2.cs" />
+    <Compile Include="Network\Internal\ROLEDATA_ITEM.cs" />
+    <Compile Include="Network\Internal\RoleData_Magic.cs" />
+    <Compile Include="Network\Internal\ROLEDATE_EUDEMON.cs" />
+    <Compile Include="Network\Internal\RoleInfo.cs" />
+    <Compile Include="Network\Internal\RoleInfo_Ret.cs" />
+    <Compile Include="Network\Internal\SaveRoleData_Attr.cs" />
+    <Compile Include="Network\Internal\UPDATEGUANJUEDATA.cs" />
+    <Compile Include="Network\PacketOut.cs" />
+    <Compile Include="Network\PacketProtoco.cs" />
+    <Compile Include="Network\PackIn.cs" />
+    <Compile Include="Network\StateObject.cs" />
+    <Compile Include="Network\TcpClient.cs" />
+    <Compile Include="Network\TcpClientEvent.cs" />
+    <Compile Include="Network\TcpServer.cs" />
+    <Compile Include="Network\TcpServerEvent.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
