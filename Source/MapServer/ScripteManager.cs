@@ -736,6 +736,14 @@ namespace MapServer
 			{
 				string text = array[0];
 				int num = Convert.ToInt32(array[2]);
+				if (text == "godship")
+				{
+					return this.CompareIntegerProperty((int)play.GetBaseAttr().godship, array[1], num);
+				}
+				if (text == "godtype")
+				{
+					return this.CompareIntegerProperty((int)play.GetBaseAttr().godtype, array[1], num);
+				}
 				string text2 = text;
 				if (text2 != null)
 				{
@@ -922,6 +930,25 @@ namespace MapServer
 			return result;
 		}
 
+		private bool CompareIntegerProperty(int currentValue, string operation, int expectedValue)
+		{
+			switch (operation)
+			{
+			case ">":
+				return currentValue > expectedValue;
+			case "<":
+				return currentValue < expectedValue;
+			case "=":
+				return currentValue == expectedValue;
+			case ">=":
+				return currentValue >= expectedValue;
+			case "<=":
+				return currentValue <= expectedValue;
+			default:
+				return false;
+			}
+		}
+
 		// Token: 0x0600040A RID: 1034 RVA: 0x0002FC58 File Offset: 0x0002DE58
 		private void Action_Set_Role_Pro(ActionInfo info, PlayerObject play)
 		{
@@ -988,6 +1015,67 @@ namespace MapServer
 						baseAttr2.godlevel += b2;
 					}
 				}
+				break;
+			}
+			case "godship":
+			{
+				byte godship;
+				if (array.Length != 3 || array[1] != "=" || !byte.TryParse(array[2], out godship))
+				{
+					Log.Instance().WriteLog("Invalid parameters for Godship assignment: " + info.param);
+					break;
+				}
+				if (godship < 1 || godship > 4)
+				{
+					Log.Instance().WriteLog("Rejected invalid Godship value: " + godship.ToString());
+					break;
+				}
+				PlayerAttribute baseAttr3 = play.GetBaseAttr();
+				if (baseAttr3.godlevel < 1)
+				{
+					Log.Instance().WriteLog("Rejected Godship assignment before Apotheosis for role " + play.GetName());
+					break;
+				}
+				if (baseAttr3.godship != 0)
+				{
+					Log.Instance().WriteLog("Rejected Godship reassignment for role " + play.GetName());
+					break;
+				}
+				baseAttr3.godship = godship;
+				DBServer.Instance().SaveRoleData(play, false);
+				Log.Instance().WriteLog("Godship " + godship.ToString() + " assigned to role " + play.GetName());
+				break;
+			}
+			case "godtype":
+			{
+				byte godtype;
+				if (array.Length != 3 || array[1] != "=" || !byte.TryParse(array[2], out godtype))
+				{
+					Log.Instance().WriteLog("Invalid parameters for deity assignment: " + info.param);
+					break;
+				}
+				if (godtype < 1 || godtype > 12)
+				{
+					Log.Instance().WriteLog("Rejected invalid deity value: " + godtype.ToString());
+					break;
+				}
+				PlayerAttribute deityAttr = play.GetBaseAttr();
+				byte requiredGodship = (byte)(((int)godtype - 1) / 3 + 1);
+				if (deityAttr.godlevel < 1 || deityAttr.godship != requiredGodship)
+				{
+					Log.Instance().WriteLog("Rejected deity outside the stored Godship for role " + play.GetName());
+					break;
+				}
+				if (deityAttr.godtype != 0)
+				{
+					Log.Instance().WriteLog("Rejected deity reassignment for role " + play.GetName());
+					break;
+				}
+				deityAttr.godtype = godtype;
+				play.ReconcileGodshipSkills();
+				DBServer.Instance().SaveRoleData(play, false);
+				play.SendGodshipInfo();
+				Log.Instance().WriteLog("Deity " + godtype.ToString() + " assigned to role " + play.GetName());
 				break;
 			}
 			case "hair":
@@ -1947,7 +2035,7 @@ namespace MapServer
 					{
 						return false;
 					}
-					if (play.GetBaseAttr().profession != b)
+					if (b != 0 && play.GetBaseAttr().profession != b)
 					{
 						result = false;
 						play.LeftNotice("Profession mismatch, unable to learn skill");

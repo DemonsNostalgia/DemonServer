@@ -12,7 +12,7 @@ namespace DBServer
 		public const string CREATE = "insert into cq_user(accountid,name,lookface,profession,level) values({0},'{1}',{2},{3},1)";
 
 		// Token: 0x0400000F RID: 15
-		public const string SAVEROLE_ATTR = "update cq_user set name='{0}',lookface={1},hair={2},level={3},exp={4},life={5},mana={6},profession={7},pk={8},gold={9},gamegold={10},stronggold={11},mapid={12},record_x={13},record_y={14},hotkey='{15}',guanjue={16},godlevel={17},maxeudemon={18} where accountid={19} ";
+		public const string SAVEROLE_ATTR = "update cq_user set name='{0}',lookface={1},hair={2},level={3},exp={4},life={5},mana={6},profession={7},pk={8},gold={9},gamegold={10},stronggold={11},mapid={12},record_x={13},record_y={14},hotkey='{15}',guanjue={16},godlevel={17},godship={18},godtype={19},maxeudemon={20} where accountid={21} ";
 
 		// Token: 0x04000010 RID: 16
 		public const string SAVEROLE_ITEM = "insert into cq_item(playerid,itemid,postion,stronglv,gem1,gem2,forgename,amount,war_ghost_exp,di_attack,shui_attack,huo_attack,feng_attack,property,gem3,god_exp,god_strong) values({0},{1},{2},{3},{4},{5},'{6}',{7},{8},{9},{10},{11},{12},{13},{14},{15},{16})";

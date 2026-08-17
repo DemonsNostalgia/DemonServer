@@ -26,6 +26,8 @@ namespace GameStruct
 			this.guanjue = 0UL;
 			this.sAccount = "";
 			this.godlevel = 0;
+			this.godship = 0;
+			this.godtype = 0;
 			this.maxeudemon = 2;
 			this.vip = 0;
 		}
@@ -128,6 +130,10 @@ namespace GameStruct
 
 		// Token: 0x04000198 RID: 408
 		public byte godlevel;
+
+		public byte godship;
+
+		public byte godtype;
 
 		// Token: 0x04000199 RID: 409
 		public byte maxeudemon;

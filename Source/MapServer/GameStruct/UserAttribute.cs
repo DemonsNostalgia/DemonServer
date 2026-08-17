@@ -49,6 +49,7 @@ namespace GameStruct
 		XP,
 		// Token: 0x04000242 RID: 578
 		MAXEUDEMON = 39,
+		GODSHIP = 45,
 		// Token: 0x04000243 RID: 579
 		GAMEGOLD = 46,
 		// Token: 0x04000244 RID: 580

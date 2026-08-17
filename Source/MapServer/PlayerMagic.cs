@@ -137,6 +137,24 @@ namespace MapServer
 			}
 		}
 
+		public bool EnsureMagicLevel(uint magicId, byte level)
+		{
+			RoleMagicInfo existing;
+			if (this.mDicMagic.TryGetValue(magicId, out existing))
+			{
+				if (existing.level >= level)
+				{
+					return false;
+				}
+				existing.level = level;
+				existing.exp = 0U;
+				this.SendMagicInfo(existing);
+				return true;
+			}
+			this.AddMagicInfo(magicId, level, 0U);
+			return true;
+		}
+
 		// Token: 0x0600033B RID: 827 RVA: 0x00024C88 File Offset: 0x00022E88
 		public void SendMagicInfo(RoleMagicInfo info)
 		{

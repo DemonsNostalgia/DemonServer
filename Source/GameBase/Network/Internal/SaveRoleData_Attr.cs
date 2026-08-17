@@ -27,6 +27,8 @@ namespace GameBase.Network.Internal
 			this.hotkey = "";
 			this.guanjue = 0UL;
 			this.godlevel = 0;
+			this.godship = 0;
+			this.godtype = 0;
 			this.maxeudemon = 2;
 			this.wardrobeHairs = new System.Collections.Generic.List<uint>();
 			this.wardrobeAvatars = new System.Collections.Generic.List<uint>();
@@ -57,6 +59,8 @@ namespace GameBase.Network.Internal
 			this.hotkey = packIn.ReadString();
 			this.guanjue = packIn.ReadULong();
 			this.godlevel = packIn.ReadByte();
+			this.godship = packIn.ReadByte();
+			this.godtype = packIn.ReadByte();
 			this.maxeudemon = packIn.ReadByte();
 			ushort wardrobeHairCount = packIn.ReadUInt16();
 			for (int i = 0; i < wardrobeHairCount; i++)
@@ -96,6 +100,8 @@ namespace GameBase.Network.Internal
 			packetOut.WriteString(this.hotkey);
 			packetOut.WriteULong(this.guanjue);
 			packetOut.WriteByte(this.godlevel);
+			packetOut.WriteByte(this.godship);
+			packetOut.WriteByte(this.godtype);
 			packetOut.WriteByte(this.maxeudemon);
 			packetOut.WriteUInt16(unchecked((ushort)this.wardrobeHairs.Count));
 			foreach (uint styleId in this.wardrobeHairs)
@@ -170,6 +176,10 @@ namespace GameBase.Network.Internal
 
 		// Token: 0x04000093 RID: 147
 		public byte godlevel;
+
+		public byte godship;
+
+		public byte godtype;
 
 		// Token: 0x04000094 RID: 148
 		public byte maxeudemon;

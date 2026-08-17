@@ -1129,6 +1129,15 @@ namespace MapServer
 		// Token: 0x060002CA RID: 714 RVA: 0x0001CCF8 File Offset: 0x0001AEF8
 		public void AddExp(int nExp)
 		{
+			if (this.play.GetBaseAttr().godship == 4 &&
+				this.play.GetBaseAttr().godtype >= 10 && this.play.GetBaseAttr().godtype <= 12 &&
+				this.play.GetBaseAttr().godlevel >= 10)
+			{
+				// Divine Epiphany is a Loyalty passive in this client rather than a
+				// MagicType entry. It accelerates active Eudemon experience gain.
+				long adjusted = (long)nExp + Math.Max(1L, (long)nExp / 5L);
+				nExp = (int)Math.Min((long)int.MaxValue, adjusted);
+			}
 			for (int i = 0; i < this.mBattleObj.Count; i++)
 			{
 				EudemonObject eudemonObject = this.mBattleObj[i];

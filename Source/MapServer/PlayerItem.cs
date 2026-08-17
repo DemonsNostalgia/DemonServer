@@ -133,7 +133,7 @@ namespace MapServer
 					this.GetPendingPositionCount(position),
 					outgoingCount,
 					incomingCount,
-					PlayerEudemon.EudemonCapacity);
+					this.play.GetEudemonCapacity());
 			}
 			return true;
 		}

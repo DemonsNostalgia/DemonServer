@@ -380,6 +380,8 @@ namespace MapServer
 				saveRoleData_Attr.gamegold = (long)baseAttr.gamegold;
 				saveRoleData_Attr.stronggold = baseAttr.stronggold;
 				saveRoleData_Attr.godlevel = baseAttr.godlevel;
+				saveRoleData_Attr.godship = baseAttr.godship;
+				saveRoleData_Attr.godtype = baseAttr.godtype;
 				saveRoleData_Attr.maxeudemon = baseAttr.maxeudemon;
 				saveRoleData_Attr.wardrobeHairs =
 					play.GetWardrobeSystem().GetOwnedHairStyles();

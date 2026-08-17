@@ -180,7 +180,10 @@ namespace MapServer
 									{
 										Log.Instance().WriteLog(
 											"MapServer key update rejected: " +
-											mapConnectError + ".");
+											mapConnectError + "; payload length=" +
+											(data == null ? "<null>" : data.Length.ToString()) +
+											", bytes=" +
+											(data == null ? "<null>" : BitConverter.ToString(data)) + ".");
 										break;
 									}
 									int key = unchecked((int)mapConnect.Key1);

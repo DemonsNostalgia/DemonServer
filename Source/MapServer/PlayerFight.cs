@@ -208,6 +208,16 @@ namespace MapServer
 				ushort magicLevel = this.play.GetMagicSystem().GetMagicLevel(info.usType);
 				if (this.play.GetMagicSystem().CheckMagicAttackSpeed((ushort)info.usType, (byte)magicLevel))
 				{
+					if (info.usType == 1047U)
+					{
+						this.play.LeftNotice("Expansion is passive; its Eudemon bag capacity is already active.");
+						return;
+					}
+					if (info.usType == 1042U)
+					{
+						this.CastGodBenison(info, (byte)magicLevel);
+						return;
+					}
 					if (info.usType == 5214U)
 					{
 						uint num = info.usType + (uint)this.mnYanHunQiangIndex;
@@ -1468,6 +1478,42 @@ namespace MapServer
 		public void SetFighting()
 		{
 			this.mnLastAttackTick = Environment.TickCount;
+		}
+
+		private void CastGodBenison(MsgAttackInfo info, byte magicLevel)
+		{
+			PlayerAttribute attr = this.play.GetBaseAttr();
+			if (attr.godship != 4 || attr.godtype < 10 || attr.godtype > 12)
+			{
+				this.play.LeftNotice("God Benison requires the Loyalty Godship.");
+				return;
+			}
+			PlayerObject target = this.play;
+			if (info.idTarget != 0U && info.idTarget != this.play.GetTypeId())
+			{
+				BaseObject targetObject = this.play.GetGameMap().FindObjectForID(info.idTarget);
+				if (targetObject == null || targetObject.type != 2)
+				{
+					this.play.LeftNotice("God Benison can only bless a player in view.");
+					return;
+				}
+				target = targetObject as PlayerObject;
+			}
+			MagicTypeInfo magic = ConfigManager.Instance().GetMagicTypeInfo(1042U, magicLevel);
+			if (magic == null)
+			{
+				return;
+			}
+			int duration = Math.Max(1, Math.Min(3600, (int)magic.step_secs));
+			target.ApplyGodBenison((int)magic.power, duration);
+			MsgMagicAttackInfo cast = new MsgMagicAttackInfo();
+			cast.id = this.play.GetTypeId();
+			cast.targetid = target.GetTypeId();
+			cast.magicid = 1042;
+			cast.level = magicLevel;
+			cast.dir = this.play.GetDir();
+			this.play.BroadcastBuffer(cast.GetBuffer(), true);
+			this.play.LeftNotice("God Benison granted " + magic.power.ToString() + "% bonus experience.");
 		}
 
 		// Token: 0x04000600 RID: 1536
