@@ -307,6 +307,8 @@ CREATE TABLE `cq_user` (
   `hotkey` varchar(255) DEFAULT '',
   `guanjue` bigint unsigned DEFAULT '0',
   `godlevel` tinyint unsigned DEFAULT '0',
+  `godship` tinyint unsigned NOT NULL DEFAULT '0',
+  `godtype` tinyint unsigned NOT NULL DEFAULT '0',
   `maxeudemon` tinyint DEFAULT '2',
   `wardrobe_hairs` varchar(2048) NOT NULL DEFAULT '',
   `wardrobe_avatars` varchar(2048) NOT NULL DEFAULT '',

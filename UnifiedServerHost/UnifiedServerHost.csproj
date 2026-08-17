@@ -15,9 +15,19 @@
     <PublishTrimmed>false</PublishTrimmed>
     <DebugType>none</DebugType>
     <DebugSymbols>false</DebugSymbols>
-    <PackageOutputPath>..\..\RunTime\UnifiedServerHost</PackageOutputPath>
+    <PublishDir>$(MSBuildProjectDirectory)\..\RunTime\</PublishDir>
+    <AutoPublishSingleFile>true</AutoPublishSingleFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MySql.Data" Version="9.7.0" />
   </ItemGroup>
+  <Target Name="AutoPublishSingleExecutable"
+          AfterTargets="Build"
+          Condition="'$(AutoPublishSingleFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and ('$(Configuration)' == 'Debug' or '$(Configuration)' == 'Release')">
+    <Message Importance="high" Text="Publishing $(Configuration) as a single executable to $(PublishDir)" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)"
+             Targets="Publish"
+             BuildInParallel="false"
+             Properties="Configuration=$(Configuration);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=true;PublishSingleFile=true;PublishDir=$(PublishDir);NoBuild=true;AutoPublishSingleFile=false" />
+  </Target>
 </Project>

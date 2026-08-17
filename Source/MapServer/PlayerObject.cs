@@ -706,6 +706,11 @@ namespace MapServer
 		// Token: 0x06000378 RID: 888 RVA: 0x00026080 File Offset: 0x00024280
 		public void ProcessNetMsg(ushort tag, byte[] netdata)
 		{
+			if (tag == MapPacketCodec.AvatarMapViewType)
+			{
+				this.HandleAvatarMapView(netdata);
+				return;
+			}
 			ushort num = tag;
 			if (num <= 1032)
 			{
@@ -719,9 +724,7 @@ namespace MapServer
 						if (!msgTalkInfo.TryValidatePlayerMessage(
 							this.GetName(), out chatError))
 						{
-							Log.Instance().WriteLog(
-								"Rejected malformed player talk packet from role " +
-								this.GetTypeId().ToString() + ": " + chatError + ".");
+							this.LogMalformedPacket(1004, netdata, chatError);
 							return;
 						}
 						string talkText = msgTalkInfo.GetTalkText();
@@ -863,9 +866,19 @@ namespace MapServer
 						if (!MapPacketCodec.TryReadNameQuery(
 							netdata, out nameQuery, out error))
 						{
-							Log.Instance().WriteLog(
-								"Rejected malformed name packet 1015: " + error);
+							this.LogMalformedPacket(1015, netdata, error);
 							return;
+						}
+						if (nameQuery.IsHeaderOnly)
+						{
+							Log.Instance().WriteLog(
+								"Decoded header-only packet 1015 for role " +
+								this.GetTypeId().ToString() + ": target/value=" +
+								nameQuery.TargetId.ToString() + ", action=" +
+								nameQuery.Action.ToString() + ", flag=" +
+								nameQuery.ReservedTail.ToString() + ", payload length=" +
+								netdata.Length.ToString() + ", bytes=" +
+								FormatPacketBytes(netdata));
 						}
 						this.HandleNameQuery(nameQuery);
 						return;
@@ -1425,8 +1438,7 @@ namespace MapServer
 						if (!MapPacketCodec.TryReadTeamAction(
 							netdata, out teamAction, out error))
 						{
-							Log.Instance().WriteLog(
-								"Rejected malformed team packet 1023: " + error);
+							this.LogMalformedPacket(1023, netdata, error);
 							return;
 						}
 						TeamManager.Instance().HandlePacket(this, teamAction);
@@ -1439,9 +1451,7 @@ namespace MapServer
 						if (!MapPacketCodec.TryReadMonsterFaceStatus(
 							netdata, out statusPacket, out error))
 						{
-							Log.Instance().WriteLog(
-								"Rejected malformed monster-face status packet 1028: " +
-								error);
+							this.LogMalformedPacket(1028, netdata, error);
 							return;
 						}
 						if (statusPacket.RoleId != base.GetTypeId())
@@ -1486,9 +1496,7 @@ namespace MapServer
 							if (!MapPacketCodec.TryReadAction2(
 								netdata, out actionQuery, out error))
 							{
-								Log.Instance().WriteLog(
-									"Rejected malformed action packet 1032: " +
-									error);
+								this.LogMalformedPacket(1032, netdata, error);
 								return;
 							}
 							if (actionQuery.Action == 157)
@@ -1613,8 +1621,8 @@ namespace MapServer
 									actionQuery.ValueAt24 != 0 ||
 									actionQuery.ReservedAt28 != 0)
 								{
-									Log.Instance().WriteLog(
-										"Rejected malformed Goddess action packet 1032/159");
+									this.LogMalformedPacket(
+										1032, netdata, "invalid Goddess action 159 fields");
 									return;
 								}
 								Log.Instance().WriteLog(
@@ -1636,9 +1644,11 @@ namespace MapServer
 									actionQuery.ValueAt24 > 4 ||
 									actionQuery.ReservedAt28 != 0)
 								{
-									Log.Instance().WriteLog(
-										"Rejected malformed Goddess action packet 1032/" +
-										actionQuery.Action.ToString());
+									this.LogMalformedPacket(
+										1032,
+										netdata,
+										"invalid Goddess action " +
+										actionQuery.Action.ToString() + " fields");
 									return;
 								}
 								Log.Instance().WriteLog(
@@ -1658,11 +1668,6 @@ namespace MapServer
 					}
 					else
 					{
-						if (base.GetGameMap().IsSafeArea(base.GetCurrentX(), base.GetCurrentY()))
-						{
-							this.LeftNotice("PK is prohibited in this area!");
-							return;
-						}
 						MsgAttackInfo msgAttackInfo = new MsgAttackInfo();
 						msgAttackInfo.Create(netdata, base.GetGamePackKeyEx());
 						if (msgAttackInfo.tag == 21U)
@@ -1673,6 +1678,30 @@ namespace MapServer
 							msgAttackInfo.usPosY = (ushort)(65535U & BaseFunc.ExchangeShortBits(nData, 11) + 30430U);
 							msgAttackInfo.idTarget = (BaseFunc.ExchangeLongBits((ulong)msgAttackInfo.idTarget, 13) ^ msgAttackInfo.roleId ^ 1596793955U) + 2341516570U;
 							msgAttackInfo.usType = (65535U & BaseFunc.ExchangeShortBits(msgAttackInfo.usType ^ msgAttackInfo.roleId ^ 37213U, 13) + 5310U);
+						}
+						if (msgAttackInfo.usType == 1041U || msgAttackInfo.usType == 1025U)
+						{
+							Log.Instance().WriteLog(
+								"Avatar/Teleporter packet 1022 for role " +
+								base.GetTypeId().ToString() + ": magic=" +
+								msgAttackInfo.usType.ToString() + ", caster=" +
+								msgAttackInfo.roleId.ToString() + ", target=" +
+								msgAttackInfo.idTarget.ToString() + ", x=" +
+								msgAttackInfo.usPosX.ToString() + ", y=" +
+								msgAttackInfo.usPosY.ToString() + ", tag=" +
+								msgAttackInfo.tag.ToString() + ", payload length=" +
+								(netdata == null ? "<null>" : netdata.Length.ToString()) +
+								", bytes=" + FormatPacketBytes(netdata));
+						}
+						if (msgAttackInfo.usType == 1041U)
+						{
+							this.HandleAvatarTeleport(msgAttackInfo);
+							return;
+						}
+						if (base.GetGameMap().IsSafeArea(base.GetCurrentX(), base.GetCurrentY()))
+						{
+							this.LeftNotice("PK is prohibited in this area!");
+							return;
 						}
 						if (msgAttackInfo.roleId != base.GetTypeId())
 						{
@@ -2000,8 +2029,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadSyndicateQuery(
 						netdata, out syndicateQuery, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed syndicate packet 1107: " + error);
+						this.LogMalformedPacket(1107, netdata, error);
 						return;
 					}
 					if (syndicateQuery.Reserved != 0 ||
@@ -2033,9 +2061,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadSyndicateMemberQuery(
 						netdata, out memberQuery, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed syndicate-member packet 1112: " +
-							error);
+						this.LogMalformedPacket(1112, netdata, error);
 						return;
 					}
 					LegionManager.Instance().HandleMemberQuery(
@@ -2049,9 +2075,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadEudemonPackage(
 						netdata, out packageQuery, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed eudemon-package packet 1117: " +
-							error);
+						this.LogMalformedPacket(1117, netdata, error);
 						return;
 					}
 					if (EudemonHatchManager.Handle(this, packageQuery))
@@ -2130,8 +2154,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadSystemTime(
 						netdata, out systemTimePacket, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed system-time packet 1123: " + error);
+						this.LogMalformedPacket(1123, netdata, error);
 						return;
 					}
 
@@ -2156,8 +2179,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadPkItemList(
 						netdata, out pkItemQuery, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed PK-item packet 1142: " + error);
+						this.LogMalformedPacket(1142, netdata, error);
 						return;
 					}
 					bool hasRecordData = false;
@@ -2241,9 +2263,7 @@ namespace MapServer
 							if (!MapPacketCodec.TryReadDataArray(
 								netdata, out goddessRequest, out error))
 							{
-								Log.Instance().WriteLog(
-									"Rejected malformed Goddess data-array packet " +
-									"2036/286: " + error);
+								this.LogMalformedPacket(2036, netdata, error);
 								return;
 							}
 							if (goddessRequest.Reserved != 0 ||
@@ -2387,8 +2407,7 @@ namespace MapServer
 					if (!MapPacketCodec.TryReadFamilyQuery(
 						netdata, out familyQuery, out error))
 					{
-						Log.Instance().WriteLog(
-							"Rejected malformed family packet 2051: " + error);
+						this.LogMalformedPacket(2051, netdata, error);
 						return;
 					}
 					if (familyQuery.Reserved != 0 ||
@@ -2452,10 +2471,32 @@ namespace MapServer
 			Debug.WriteLine("Unknown packet, protocol number:" + tag.ToString());
 		}
 
+		private void LogMalformedPacket(
+			ushort packetType,
+			byte[] payload,
+			string reason)
+		{
+			Log.Instance().WriteLog(
+				"Rejected malformed packet " + packetType.ToString() +
+				" for role " + this.GetTypeId().ToString() + ": " +
+				(reason ?? "unspecified validation error") +
+				"; payload length=" +
+				(payload == null ? "<null>" : payload.Length.ToString()) +
+				", bytes=" + FormatPacketBytes(payload));
+		}
+
+		private static string FormatPacketBytes(byte[] payload)
+		{
+			return payload == null ? "<null>" : BitConverter.ToString(payload);
+		}
+
 		private void HandleNameQuery(NameQueryPacket packet)
 		{
 			switch (packet.Action)
 			{
+			case 323:
+				this.HandleAvatarActivation(packet);
+				break;
 			case MsgHotKey.CHANGE_EUDEMON_NAME:
 				this.HandleEudemonRename(packet);
 				break;
@@ -2483,6 +2524,276 @@ namespace MapServer
 				LegionManager.Instance().HandleNameQuery(this, packet);
 				break;
 			}
+		}
+
+		private void HandleAvatarActivation(NameQueryPacket packet)
+		{
+			if (!packet.IsHeaderOnly || packet.TargetId != 0U ||
+				packet.ReservedTail != 0 || packet.Strings.Length != 0)
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar activation action 323 for role " +
+					this.GetTypeId().ToString() +
+					": expected header-only target=0 flag=0.");
+				return;
+			}
+
+			if (this.IsDie() || base.IsLock())
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar activation action 323 for role " +
+					this.GetTypeId().ToString() +
+					": character is dead or locked.");
+				return;
+			}
+
+			if (!this.GetMagicSystem().isMagic(1041U))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar activation action 323 for role " +
+					this.GetTypeId().ToString() +
+					": Avatar skill 1041 is not learned.");
+				return;
+			}
+
+			if (!this.CanUseAvatarFromCurrentMap())
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar activation action 323 for role " +
+					this.GetTypeId().ToString() +
+					": Avatar cannot be used on the current map.");
+				return;
+			}
+
+			this.mAvatarViewMapId = 0U;
+			this.mAvatarViewTick = 0;
+			this.SendData(
+				MapPacketCodec.CreateNameHeaderOnlyResponse(
+					this.GetGamePackKeyEx(), 1U, 323, 0),
+				false);
+			Log.Instance().WriteLog(
+				"Accepted Avatar activation action 323 for role " +
+				this.GetTypeId().ToString() +
+				" and returned the header-only authorization response " +
+				"with value=1.");
+		}
+
+		private void HandleAvatarMapView(byte[] payload)
+		{
+			AvatarMapViewRequest request;
+			string error;
+			if (!MapPacketCodec.TryReadAvatarMapViewRequest(
+				payload, out request, out error))
+			{
+				this.LogMalformedPacket(
+					MapPacketCodec.AvatarMapViewType, payload, error);
+				return;
+			}
+
+			if (request.Action != 0 || request.Count != 1 ||
+				request.ReservedAt12 != 0 || request.ReservedAt14 != 0 ||
+				!IsZeroFilled(request.ReservedTail))
+			{
+				this.LogMalformedPacket(
+					MapPacketCodec.AvatarMapViewType,
+					payload,
+					"unsupported Avatar map-view request fields");
+				return;
+			}
+			if (this.IsDie() || base.IsLock() ||
+				!this.CanUseAvatarFromCurrentMap() ||
+				!this.GetMagicSystem().isMagic(1041U))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar map-view request for role " +
+					this.GetTypeId().ToString() +
+					": character is not eligible to use Avatar.");
+				return;
+			}
+			if (!IsAvatarViewMap(request.MapId))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar map-view request for role " +
+					this.GetTypeId().ToString() + ": unsupported map " +
+					request.MapId.ToString() + ".");
+				return;
+			}
+
+			GameMap viewMap = MapManager.Instance().GetGameMapToID(request.MapId);
+			if (viewMap == null || request.X >= viewMap.mnWidth ||
+				request.Y >= viewMap.mnHeight)
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar map-view request for role " +
+					this.GetTypeId().ToString() + ": invalid destination map=" +
+					request.MapId.ToString() + ", x=" + request.X.ToString() +
+					", y=" + request.Y.ToString() + ".");
+				return;
+			}
+			short viewX = unchecked((short)request.X);
+			short viewY = unchecked((short)request.Y);
+
+			List<AvatarMapMonsterRecord> monsters =
+				new List<AvatarMapMonsterRecord>();
+			foreach (BaseObject candidate in viewMap.GetAllObject().Values)
+			{
+				if (candidate.type != 3)
+				{
+					continue;
+				}
+				MonsterObject monster = candidate as MonsterObject;
+				if (monster == null || monster.IsClear() || monster.IsDie() ||
+					Math.Abs((int)monster.GetCurrentX() - viewX) > 15 ||
+					Math.Abs((int)monster.GetCurrentY() - viewY) > 15)
+				{
+					continue;
+				}
+				MonsterInfo info = monster.GetBasicAttribute();
+				if (info == null)
+				{
+					continue;
+				}
+				monsters.Add(new AvatarMapMonsterRecord
+				{
+					X = unchecked((ushort)monster.GetCurrentX()),
+					Y = unchecked((ushort)monster.GetCurrentY()),
+					Level = info.level,
+					LookFace = info.lookface,
+					Name = info.name
+				});
+			}
+
+			this.mAvatarViewMapId = request.MapId;
+			this.mAvatarViewTick = Environment.TickCount;
+			byte[] response = MapPacketCodec.CreateAvatarMapViewResponse(
+				base.GetGamePackKeyEx(), monsters.ToArray());
+			base.SendData(response, false);
+			Log.Instance().WriteLog(
+				"Answered Avatar map-view packet 1152 for role " +
+				this.GetTypeId().ToString() + ": map=" + request.MapId.ToString() +
+				", center=" + request.X.ToString() + "," + request.Y.ToString() +
+				", monsters=" + monsters.Count.ToString() +
+				", response bytes=" + response.Length.ToString() + ".");
+		}
+
+		private void HandleAvatarTeleport(MsgAttackInfo attack)
+		{
+			if (attack.tag != 21U || attack.roleId != base.GetTypeId() ||
+				this.IsDie() || base.IsLock() ||
+				!this.CanUseAvatarFromCurrentMap() ||
+				!this.GetMagicSystem().isMagic(1041U))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar teleport for role " +
+					this.GetTypeId().ToString() + ": invalid caster or skill state.");
+				return;
+			}
+			if (this.mAvatarViewMapId == 0U ||
+				Environment.TickCount - this.mAvatarViewTick > 120000)
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar teleport for role " +
+					this.GetTypeId().ToString() +
+					": no current packet-1152 destination context.");
+				return;
+			}
+			ushort magicLevel = this.GetMagicSystem().GetMagicLevel(1041U);
+			if (!this.GetMagicSystem().CheckMagicAttackSpeed(1041, (byte)magicLevel))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar teleport for role " +
+					this.GetTypeId().ToString() + ": skill cooldown is active.");
+				return;
+			}
+
+			GameMap destination = MapManager.Instance().GetGameMapToID(
+				this.mAvatarViewMapId);
+			short x = unchecked((short)attack.usPosX);
+			short y = unchecked((short)attack.usPosY);
+			if (destination == null || !IsAvatarViewMap(this.mAvatarViewMapId) ||
+				!destination.CanMove(x, y))
+			{
+				Log.Instance().WriteLog(
+					"Rejected Avatar teleport for role " +
+					this.GetTypeId().ToString() + ": map=" +
+					this.mAvatarViewMapId.ToString() + ", x=" + x.ToString() +
+					", y=" + y.ToString() + " is invalid.");
+				return;
+			}
+			MagicTypeInfo avatar = ConfigManager.Instance().GetMagicTypeInfo(
+				1041U, (byte)magicLevel);
+			if (avatar != null && avatar.use_ep > 0U)
+			{
+				if ((long)this.GetBaseAttr().sp < (long)((ulong)avatar.use_ep))
+				{
+					this.LeftNotice("You do not have enough SP to use Avatar.");
+					Log.Instance().WriteLog(
+						"Rejected Avatar teleport for role " +
+						this.GetTypeId().ToString() + ": SP requirement=" +
+						avatar.use_ep.ToString() + ", current=" +
+						this.GetBaseAttr().sp.ToString() + ".");
+					return;
+				}
+				this.ChangeAttribute(
+					UserAttribute.SP, -unchecked((int)avatar.use_ep), true);
+			}
+
+			uint destinationMapId = this.mAvatarViewMapId;
+			this.mAvatarViewMapId = 0U;
+			this.mAvatarViewTick = 0;
+			Log.Instance().WriteLog(
+				"Accepted Avatar teleport for role " +
+				this.GetTypeId().ToString() + ": from map=" +
+				base.GetGameMap().GetMapInfo().id.ToString() + " to map=" +
+				destinationMapId.ToString() + ", x=" + x.ToString() +
+				", y=" + y.ToString() + ".");
+			this.ChangeMap(destinationMapId, x, y);
+		}
+
+		private static bool IsAvatarViewMap(uint mapId)
+		{
+			switch (mapId)
+			{
+			case 1000U:
+			case 8100U:
+			case 2010U:
+			case 3000U:
+			case 7000U:
+			case 5000U:
+			case 6000U:
+			case 5100U:
+			case 5400U:
+			case 4000U:
+				return true;
+			default:
+				return false;
+			}
+		}
+
+		private bool CanUseAvatarFromCurrentMap()
+		{
+			if (base.GetGameMap() == null)
+			{
+				return false;
+			}
+			uint mapId = base.GetGameMap().GetMapInfo().id;
+			return mapId != 200U && mapId != 10000U;
+		}
+
+		private static bool IsZeroFilled(byte[] bytes)
+		{
+			if (bytes == null)
+			{
+				return false;
+			}
+			for (int index = 0; index < bytes.Length; index++)
+			{
+				if (bytes[index] != 0)
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private void HandleEudemonRename(NameQueryPacket packet)
@@ -2838,52 +3149,8 @@ namespace MapServer
 				UserEngine.Instance().AddPlayerObject(this);
 				MsgNotice msgNotice = new MsgNotice();
 				msgNotice.Create(null, base.GetGamePackKeyEx());
-				MsgSelfRoleInfo msgSelfRoleInfo = new MsgSelfRoleInfo();
-				msgSelfRoleInfo.Create(null, base.GetGamePackKeyEx());
-				msgSelfRoleInfo.roleid = base.GetTypeId();
-				msgSelfRoleInfo.lookface = this.GetBaseAttr().lookface;
-				msgSelfRoleInfo.profession = this.GetBaseAttr().profession;
-				msgSelfRoleInfo.name = base.GetName();
 				this.GetBaseAttr().life = this.GetBaseAttr().life_max;
-				msgSelfRoleInfo.life = (ushort)this.GetBaseAttr().life;
-				msgSelfRoleInfo.maxlife = (ushort)this.GetBaseAttr().life_max;
-				msgSelfRoleInfo.manna = (ushort)this.GetBaseAttr().mana;
-				BaseAttributeInfo attributeInfo =
-					ConfigManager.Instance().GetAttributeInfo(
-						this.GetBaseAttr().profession,
-						this.GetBaseAttr().level);
-				if (attributeInfo != null)
-				{
-					msgSelfRoleInfo.attackpower = (ushort)Math.Min(
-						(int)ushort.MaxValue,
-						Math.Max(0, attributeInfo.force));
-					msgSelfRoleInfo.doage = (ushort)Math.Min(
-						(int)ushort.MaxValue,
-						Math.Max(0, attributeInfo.dexterity));
-					msgSelfRoleInfo.health = (ushort)Math.Min(
-						(int)ushort.MaxValue,
-						Math.Max(0, attributeInfo.health));
-					msgSelfRoleInfo.magic_attack = (ushort)Math.Min(
-						(int)ushort.MaxValue,
-						Math.Max(0, attributeInfo.soul));
-				}
-				msgSelfRoleInfo.maxpetcall = (ushort)this.GetBaseAttr().maxeudemon;
-				msgSelfRoleInfo.level = this.GetBaseAttr().level;
-				msgSelfRoleInfo.param6[11] = this.GetBaseAttr().vip;
-				msgSelfRoleInfo.param6[16] = this.GetBaseAttr().level;
-				msgSelfRoleInfo.exp = (uint)Math.Max(0, this.GetBaseAttr().exp);
-				msgSelfRoleInfo.pk =
-					(ushort)Math.Max(0, (int)this.GetBaseAttr().pk);
-				msgSelfRoleInfo.gold = (uint)this.GetBaseAttr().gold;
-				msgSelfRoleInfo.godlevel = (int)this.GetBaseAttr().godlevel;
-				msgSelfRoleInfo.gamegold = (uint)this.GetBaseAttr().gamegold;
-				msgSelfRoleInfo.hair = this.GetBaseAttr().hair;
-				msgSelfRoleInfo.guanjue = (byte)this.GetGuanJue();
-				msgSelfRoleInfo.edubroodpacksize =
-					EudemonHatchManager.IncubatorCapacity;
-				msgSelfRoleInfo.godpetpackagelimit =
-					PlayerEudemon.EudemonCapacity;
-				msgSelfRoleInfo.param7[3] = PlayerItem.InventoryCapacity;
+				MsgSelfRoleInfo msgSelfRoleInfo = this.CreateSelfRoleInfoMessage();
 				if (isFirst)
 				{
 					base.SendData(msgNotice.GetStartGameBuff(), false);
@@ -2964,6 +3231,8 @@ namespace MapServer
 		// Token: 0x06000381 RID: 897 RVA: 0x00028A3C File Offset: 0x00026C3C
 		private void SendRoleOtherSystemInfo()
 		{
+			this.SendGodshipAttribute();
+			this.ReconcileGodshipSkills();
 			this.GetMagicSystem().SendAllMagicInfo();
 			this.GetItemSystem().SendAllItemInfo();
 			this.GetWardrobeSystem().SendAllHairInfo();
@@ -3420,30 +3689,53 @@ namespace MapServer
 			}
 			else
 			{
-				base.GetGameMap().RemoveObj(this);
+				GameMap sourceMap = base.GetGameMap();
+				uint sourceMapId = sourceMap == null ? 0U :
+					sourceMap.GetMapInfo().id;
+				if (sourceMap != null)
+				{
+					sourceMap.RemoveObj(this);
+				}
 				this.GetEudemonSystem().Eudemon_ReCallAll(true);
+				this.GetBaseAttr().mapid = mapid;
 				gameMapToID.AddObject(this, base.GetGameSession());
 				this.ClearThis();
 				this.SetPoint(x, y);
-				MsgReCall1 msgReCall = new MsgReCall1();
-				msgReCall.Create(null, base.GetGamePackKeyEx());
-				msgReCall.roleid = base.GetTypeId();
-				msgReCall.mapid = (int)base.GetGameMap().GetMapInfo().id;
-				msgReCall.x = base.GetCurrentX();
-				msgReCall.y = base.GetCurrentY();
-				base.SendData(msgReCall.GetBuffer(), false);
-				MsgReCall2 msgReCall2 = new MsgReCall2();
-				msgReCall2.Create(null, base.GetGamePackKeyEx());
-				msgReCall2.roleid = base.GetTypeId();
-				msgReCall2.x = base.GetCurrentX();
-				msgReCall2.y = base.GetCurrentY();
-				base.SendData(msgReCall2.GetBuffer(), false);
+				if (sourceMapId != mapid)
+				{
+					MsgMapInfo msgMapInfo = new MsgMapInfo();
+					msgMapInfo.Create(null, base.GetGamePackKeyEx());
+					msgMapInfo.Init(mapid, x, y, MsgMapInfo.ENTERMAP);
+					base.SendData(msgMapInfo.GetBuffer(), false);
+					gameMapToID.SendWeatherInfo(this);
+				}
+				else
+				{
+					MsgReCall1 msgReCall = new MsgReCall1();
+					msgReCall.Create(null, base.GetGamePackKeyEx());
+					msgReCall.roleid = base.GetTypeId();
+					msgReCall.mapid = (int)mapid;
+					msgReCall.x = base.GetCurrentX();
+					msgReCall.y = base.GetCurrentY();
+					base.SendData(msgReCall.GetBuffer(), false);
+					MsgReCall2 msgReCall2 = new MsgReCall2();
+					msgReCall2.Create(null, base.GetGamePackKeyEx());
+					msgReCall2.roleid = base.GetTypeId();
+					msgReCall2.x = base.GetCurrentX();
+					msgReCall2.y = base.GetCurrentY();
+					base.SendData(msgReCall2.GetBuffer(), false);
+				}
 				base.GetVisibleList().Clear();
 				GameStruct.Action act = new GameStruct.Action(2, null);
 				this.PushAction(act);
-				this.GetBaseAttr().mapid = mapid;
 				this.SendJueweiNotice();
 				this.SetTransmitIng(true);
+				Log.Instance().WriteLog(
+					"Changed role " + this.GetTypeId().ToString() +
+					" map state from " + sourceMapId.ToString() + " to " +
+					mapid.ToString() + " at " + x.ToString() + "," +
+					y.ToString() + "; transition=" +
+					(sourceMapId == mapid ? "recall" : "enter-map") + ".");
 			}
 		}
 
@@ -3690,6 +3982,23 @@ namespace MapServer
 				this.ChangeAttribute(UserAttribute.EXP, 0, false);
 			}
 			this.GetEudemonSystem().AddExp(num);
+		}
+
+		public override int AdjustExp(int exp)
+		{
+			if (exp <= 0 || this.GetTimerSystem().QueryStatus(RoleStatus.STATUS_ADD_EXP) == null)
+			{
+				return exp;
+			}
+			long adjusted = (long)exp + (long)exp * this.mGodBenisonPercent / 100L;
+			return (int)Math.Min((long)int.MaxValue, adjusted);
+		}
+
+		public void ApplyGodBenison(int percent, int durationSeconds)
+		{
+			this.mGodBenisonPercent = Math.Max(0, Math.Min(100, percent));
+			this.GetTimerSystem().AddStatus(RoleStatus.STATUS_ADD_EXP, durationSeconds, true);
+			this.LeftNotice("God Benison is active for " + durationSeconds.ToString() + " seconds.");
 		}
 
 		// Token: 0x0600039A RID: 922 RVA: 0x00029F94 File Offset: 0x00028194
@@ -3953,6 +4262,109 @@ namespace MapServer
 			}
 		}
 
+		public void ReconcileGodshipSkills()
+		{
+			PlayerAttribute attr = this.GetBaseAttr();
+			if (attr.godship != 4 || attr.godtype < 10 || attr.godtype > 12)
+			{
+				return;
+			}
+			bool changed = false;
+			if (attr.godlevel >= 1)
+			{
+				byte expansionLevel = attr.godlevel >= 10 ? (byte)2 :
+					(attr.godlevel >= 6 ? (byte)1 : (byte)0);
+				changed |= this.GetMagicSystem().EnsureMagicLevel(1047U, expansionLevel);
+			}
+			if (attr.godlevel >= 18)
+			{
+				byte benisonLevel = attr.godlevel >= 30 ? (byte)2 :
+					(attr.godlevel >= 24 ? (byte)1 : (byte)0);
+				changed |= this.GetMagicSystem().EnsureMagicLevel(1042U, benisonLevel);
+			}
+			if (changed)
+			{
+				this.GetMagicSystem().DB_Save();
+			}
+		}
+
+		public int GetEudemonCapacity()
+		{
+			int capacity = PlayerEudemon.EudemonCapacity;
+			if (this.GetBaseAttr().godship == 4 &&
+				this.GetBaseAttr().godtype >= 10 && this.GetBaseAttr().godtype <= 12 &&
+				this.GetMagicSystem().isMagic(1047U))
+			{
+				ushort level = this.GetMagicSystem().GetMagicLevel(1047U);
+				MagicTypeInfo expansion = ConfigManager.Instance().GetMagicTypeInfo(1047U, (byte)level);
+				if (expansion != null)
+				{
+					capacity += (int)expansion.power;
+				}
+			}
+			return Math.Min(byte.MaxValue, capacity);
+		}
+
+		private MsgSelfRoleInfo CreateSelfRoleInfoMessage()
+		{
+			MsgSelfRoleInfo message = new MsgSelfRoleInfo();
+			message.Create(null, base.GetGamePackKeyEx());
+			message.roleid = base.GetTypeId();
+			message.lookface = this.GetBaseAttr().lookface;
+			message.profession = this.GetBaseAttr().profession;
+			message.name = base.GetName();
+			message.life = (ushort)this.GetBaseAttr().life;
+			message.maxlife = (ushort)this.GetBaseAttr().life_max;
+			message.manna = (ushort)this.GetBaseAttr().mana;
+			BaseAttributeInfo attributeInfo = ConfigManager.Instance().GetAttributeInfo(
+				this.GetBaseAttr().profession, this.GetBaseAttr().level);
+			if (attributeInfo != null)
+			{
+				message.attackpower = (ushort)Math.Min((int)ushort.MaxValue, Math.Max(0, attributeInfo.force));
+				message.doage = (ushort)Math.Min((int)ushort.MaxValue, Math.Max(0, attributeInfo.dexterity));
+				message.health = (ushort)Math.Min((int)ushort.MaxValue, Math.Max(0, attributeInfo.health));
+				message.magic_attack = (ushort)Math.Min((int)ushort.MaxValue, Math.Max(0, attributeInfo.soul));
+			}
+			message.maxpetcall = (ushort)this.GetBaseAttr().maxeudemon;
+			message.level = this.GetBaseAttr().level;
+			message.param6[11] = this.GetBaseAttr().vip;
+			message.param6[16] = this.GetBaseAttr().level;
+			message.exp = (uint)Math.Max(0, this.GetBaseAttr().exp);
+			message.pk = (ushort)Math.Max(0, (int)this.GetBaseAttr().pk);
+			message.gold = (uint)this.GetBaseAttr().gold;
+			message.godlevel = (int)this.GetBaseAttr().godlevel;
+			message.gamegold = (uint)this.GetBaseAttr().gamegold;
+			message.hair = this.GetBaseAttr().hair;
+			message.guanjue = (byte)this.GetGuanJue();
+			message.edubroodpacksize = EudemonHatchManager.IncubatorCapacity;
+			message.godpetpackagelimit = (byte)this.GetEudemonCapacity();
+			message.param7[3] = PlayerItem.InventoryCapacity;
+			return message;
+		}
+
+		public void SendGodshipInfo()
+		{
+			if (this.session != null)
+			{
+				this.session.SendData(this.CreateSelfRoleInfoMessage().GetBuffer());
+				this.SendGodshipAttribute();
+			}
+		}
+
+		private void SendGodshipAttribute()
+		{
+			if (this.session == null)
+			{
+				return;
+			}
+
+			MsgUserAttribute message = new MsgUserAttribute();
+			message.Create(null, base.GetGamePackKeyEx());
+			message.role_id = base.GetTypeId();
+			message.AddAttribute(UserAttribute.GODSHIP, this.GetBaseAttr().godship);
+			this.session.SendData(message.GetBuffer());
+		}
+
 		public void TakeWardrobeMount(
 			uint mountItemId,
 			uint mountServerType)
@@ -4195,6 +4607,8 @@ namespace MapServer
 		// Token: 0x04000626 RID: 1574
 		private bool bIsExit;
 
+		private int mGodBenisonPercent;
+
 		// Token: 0x04000627 RID: 1575
 		private bool m_bGhost;
 
@@ -4211,6 +4625,10 @@ namespace MapServer
 		private PlayerItem mItemSystem;
 
 		private int mBatchHatchAppraisalAllowance;
+
+		private uint mAvatarViewMapId;
+
+		private int mAvatarViewTick;
 
 		private PlayerWardrobe mWardrobeSystem;
 

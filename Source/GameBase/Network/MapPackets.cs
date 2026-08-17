@@ -64,6 +64,28 @@ namespace GameBase.Network
 		public ushort Action;
 		public string[] Strings;
 		public byte ReservedTail;
+		public bool IsHeaderOnly;
+	}
+
+	public sealed class AvatarMapViewRequest
+	{
+		public ushort Action;
+		public ushort Count;
+		public ushort X;
+		public ushort Y;
+		public ushort ReservedAt12;
+		public ushort ReservedAt14;
+		public uint MapId;
+		public byte[] ReservedTail;
+	}
+
+	public sealed class AvatarMapMonsterRecord
+	{
+		public ushort X;
+		public ushort Y;
+		public ushort Level;
+		public uint LookFace;
+		public string Name;
 	}
 
 	public sealed class SyndicateMemberQueryPacket
@@ -206,6 +228,7 @@ namespace GameBase.Network
 		public const ushort MonsterFaceStatusType = 1028;
 		public const ushort Action2Type = 1032;
 		public const ushort NameQueryType = 1015;
+		public const ushort AvatarMapViewType = 1152;
 		public const ushort SyndicateType = 1107;
 		public const ushort SyndicateMemberType = 1112;
 		public const ushort EudemonPackageType = 1117;
@@ -232,6 +255,10 @@ namespace GameBase.Network
 		public const int Action2WireLength = 32;
 		public const int SyndicateMinimumWireLength = 20;
 		public const int NameQueryMinimumWireLength = 12;
+		public const int NameQueryHeaderOnlyPayloadLength = 9;
+		public const int AvatarMapViewRequestWireLength = 36;
+		public const int AvatarMapViewHeaderWireLength = 8;
+		public const int AvatarMapMonsterRecordLength = 28;
 		public const int SyndicateMemberWireLength = 56;
 		public const int EudemonPackageWireLength = 172;
 		public const int EudemonPackageHeaderWireLength = 20;
@@ -773,6 +800,30 @@ namespace GameBase.Network
 			out string error)
 		{
 			packet = null;
+			if (payload != null &&
+				payload.Length == NameQueryHeaderOnlyPayloadLength)
+			{
+				if (BitConverter.ToUInt16(payload, 0) != NameQueryType)
+				{
+					error = "packet type does not match 1015";
+					return false;
+				}
+
+				// The EO client uses a header-only MsgHotKey/MsgName variant:
+				// packet type, target/value, action/tag, and a one-byte flag.
+				// The legacy server explicitly accepts the packet when no string
+				// section follows this byte. Do not run it through the string packer.
+				packet = new NameQueryPacket
+				{
+					TargetId = BitConverter.ToUInt32(payload, 2),
+					Action = BitConverter.ToUInt16(payload, 6),
+					Strings = new string[0],
+					ReservedTail = payload[8],
+					IsHeaderOnly = true
+				};
+				error = null;
+				return true;
+			}
 			if (!ValidateMinimumPayload(
 				payload,
 				NameQueryType,
@@ -795,7 +846,8 @@ namespace GameBase.Network
 				TargetId = BitConverter.ToUInt32(payload, 2),
 				Action = BitConverter.ToUInt16(payload, 6),
 				Strings = strings,
-				ReservedTail = reservedTail[0]
+				ReservedTail = reservedTail[0],
+				IsHeaderOnly = false
 			};
 			error = null;
 			return true;
@@ -827,6 +879,99 @@ namespace GameBase.Network
 			WriteStringPacker(output, encodedStrings);
 			output.WriteByte(0);
 			return output.Flush();
+		}
+
+		public static byte[] CreateNameHeaderOnlyResponse(
+			GamePacketKeyEx encryption,
+			uint targetId,
+			ushort action,
+			byte flag)
+		{
+			const ushort wireLength = 11;
+			PacketOut output = new PacketOut(encryption);
+			output.WriteUInt16(wireLength);
+			output.WriteUInt16(NameQueryType);
+			output.WriteUInt32(targetId);
+			output.WriteUInt16(action);
+			output.WriteByte(flag);
+			return output.Flush();
+		}
+
+		public static bool TryReadAvatarMapViewRequest(
+			byte[] payload,
+			out AvatarMapViewRequest request,
+			out string error)
+		{
+			request = null;
+			if (!ValidatePayload(
+				payload,
+				AvatarMapViewType,
+				AvatarMapViewRequestWireLength,
+				out error))
+			{
+				return false;
+			}
+
+			byte[] reservedTail = new byte[16];
+			Buffer.BlockCopy(payload, 18, reservedTail, 0, reservedTail.Length);
+			request = new AvatarMapViewRequest
+			{
+				Action = BitConverter.ToUInt16(payload, 2),
+				Count = BitConverter.ToUInt16(payload, 4),
+				X = BitConverter.ToUInt16(payload, 6),
+				Y = BitConverter.ToUInt16(payload, 8),
+				ReservedAt12 = BitConverter.ToUInt16(payload, 10),
+				ReservedAt14 = BitConverter.ToUInt16(payload, 12),
+				MapId = BitConverter.ToUInt32(payload, 14),
+				ReservedTail = reservedTail
+			};
+			error = null;
+			return true;
+		}
+
+		public static byte[] CreateAvatarMapViewResponse(
+			GamePacketKeyEx encryption,
+			AvatarMapMonsterRecord[] monsters)
+		{
+			if (monsters == null)
+			{
+				throw new ArgumentNullException("monsters");
+			}
+			int maximumRecords =
+				(ushort.MaxValue - AvatarMapViewHeaderWireLength) /
+				AvatarMapMonsterRecordLength;
+			if (monsters.Length > maximumRecords)
+			{
+				throw new ArgumentOutOfRangeException(
+					"monsters", "The Avatar map response is too large.");
+			}
+
+			int wireLength = checked(
+				AvatarMapViewHeaderWireLength +
+				monsters.Length * AvatarMapMonsterRecordLength);
+			byte[] packet = new byte[wireLength];
+			WriteUInt16(packet, 0, unchecked((ushort)wireLength));
+			WriteUInt16(packet, 2, AvatarMapViewType);
+			WriteUInt16(packet, 4, 1);
+			WriteUInt16(packet, 6, unchecked((ushort)monsters.Length));
+			for (int index = 0; index < monsters.Length; index++)
+			{
+				AvatarMapMonsterRecord monster = monsters[index];
+				if (monster == null)
+				{
+					throw new ArgumentException(
+						"Avatar monster records cannot be null.", "monsters");
+				}
+				int offset = AvatarMapViewHeaderWireLength +
+					index * AvatarMapMonsterRecordLength;
+				WriteUInt16(packet, offset, monster.X);
+				WriteUInt16(packet, offset + 2, monster.Y);
+				WriteUInt16(packet, offset + 4, monster.Level);
+				WriteUInt16(packet, offset + 6, 0);
+				WriteUInt32(packet, offset + 8, monster.LookFace);
+				WriteFixedString(packet, offset + 12, 16, monster.Name);
+			}
+			return EncryptPacket(packet, encryption);
 		}
 
 		public static bool TryReadSyndicateMemberQuery(

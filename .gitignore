@@ -5,9 +5,9 @@ obj/
 **/obj/
 .vs/
 RunTime/
-RunTime/GlobalConfig.ini
+.cache/
 
 # Case-insensitive variants
 [Bb]in/
 [Oo]bj/
-/RunTime/GlobalConfig.ini
+RunTime/GlobalConfig.ini

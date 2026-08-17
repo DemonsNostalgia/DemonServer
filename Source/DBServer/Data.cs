@@ -141,6 +141,8 @@ namespace DBServer
 				roleInfo.hotkey = mySqlDataReader.GetString("hotkey");
 				roleInfo.guanjue = mySqlDataReader.GetUInt64("guanjue");
 				roleInfo.godlevel = (int)mySqlDataReader.GetByte("godlevel");
+				roleInfo.godship = mySqlDataReader.GetByte("godship");
+				roleInfo.godtype = mySqlDataReader.GetByte("godtype");
 				roleInfo.maxeudemon = mySqlDataReader.GetByte("maxeudemon");
 				roleInfo.vip = (byte)Math.Max(0, Math.Min(6,
 					mySqlDataReader.GetInt32("account_vip")));
@@ -236,7 +238,7 @@ namespace DBServer
 			string text2 = "";
 			try
 			{
-				text2 = string.Format("update cq_user set name='{0}',lookface={1},hair={2},level={3},exp={4},life={5},mana={6},profession={7},pk={8},gold={9},gamegold={10},stronggold={11},mapid={12},record_x={13},record_y={14},hotkey='{15}',guanjue={16},godlevel={17},maxeudemon={18},wardrobe_hairs=@wardrobe_hairs,wardrobe_avatars=@wardrobe_avatars where accountid={19} ", new object[]
+				text2 = string.Format("update cq_user set name='{0}',lookface={1},hair={2},level={3},exp={4},life={5},mana={6},profession={7},pk={8},gold={9},gamegold={10},stronggold={11},mapid={12},record_x={13},record_y={14},hotkey='{15}',guanjue={16},godlevel={17},godship={18},godtype={19},maxeudemon={20},wardrobe_hairs=@wardrobe_hairs,wardrobe_avatars=@wardrobe_avatars where accountid={21} ", new object[]
 				{
 					text,
 					info.lookface,
@@ -256,6 +258,8 @@ namespace DBServer
 					info.hotkey,
 					info.guanjue,
 					info.godlevel,
+					info.godship,
+					info.godtype,
 					info.maxeudemon,
 					info.accountid
 				});
@@ -539,7 +543,7 @@ namespace DBServer
 				string cmdText;
 				if (magicInfo.id == 0)
 				{
-					cmdText = string.Format("insert into cq_magic(ownerid,magicid,level,exp) values({0},{1},{2},{3})", new object[]
+					cmdText = string.Format("insert into cq_magic(ownerid,magicid,level,exp) select {0},{1},{2},{3} where not exists (select 1 from cq_magic where ownerid={0} and magicid={1})", new object[]
 					{
 						info.ownerid,
 						magicInfo.magicid,
@@ -563,6 +567,21 @@ namespace DBServer
 				mySqlCommand.ExecuteNonQuery();
 				MysqlConn.Conn_Close();
 				mySqlCommand.Dispose();
+				if (magicInfo.id == 0)
+				{
+					cmdText = string.Format("update cq_magic set level={0},exp={1} where ownerid={2} and magicid={3}", new object[]
+					{
+						magicInfo.level,
+						magicInfo.exp,
+						info.ownerid,
+						magicInfo.magicid
+					});
+					mySqlCommand = new MySqlCommand(cmdText, MysqlConn.GetConn());
+					MysqlConn.Conn_Open();
+					mySqlCommand.ExecuteNonQuery();
+					MysqlConn.Conn_Close();
+					mySqlCommand.Dispose();
+				}
 			}
 		}
 

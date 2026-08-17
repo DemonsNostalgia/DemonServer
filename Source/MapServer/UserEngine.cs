@@ -293,6 +293,8 @@ namespace MapServer
 				baseAttr.guanjue = info.guanjue;
 				baseAttr.sAccount = info.sAccount;
 				baseAttr.godlevel = (byte)info.godlevel;
+				baseAttr.godship = info.godship;
+				baseAttr.godtype = info.godtype;
 				baseAttr.maxeudemon = info.maxeudemon;
 				baseAttr.vip = info.vip;
 				playerObject.SetHotKeyInfo(info.hotkey);
